@@ -173,4 +173,12 @@ public class Json {
     public Boolean exists(String key) {
         return rootObject.get(key) != null;
     }
+
+    public Boolean getBoolean(String key, Boolean defaultValue) {
+        if (exists(key)) {
+            return (Boolean)rootObject.get(key);
+        }
+
+       return defaultValue;
+    }
 }

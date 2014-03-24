@@ -1,6 +1,5 @@
 package com.groupeseb.kite.check;
 
-import com.groupeseb.kite.Json;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.restassured.response.Response;
 import org.json.simple.parser.ParseException;
@@ -63,6 +62,6 @@ public class DefaultCheckRunner implements ICheckRunner {
         ICheckMethod method = getMatchingMethod(check.getMethodName(), context);
 
         Object o = JsonPath.read(r.prettyPrint(), check.getFieldName());
-        operator.apply(method.apply(o),check.getExpectedValue(), check.getDescription() );
+        operator.apply(method.apply(o), check.getExpectedValue(), check.getDescription());
     }
 }

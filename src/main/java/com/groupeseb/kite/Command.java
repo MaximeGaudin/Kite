@@ -3,15 +3,11 @@ package com.groupeseb.kite;
 import com.groupeseb.kite.check.Check;
 import lombok.Getter;
 import org.apache.http.HttpStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
 
 class Command {
-    protected static final Logger LOG = LoggerFactory.getLogger(Command.class);
     public static final String VERB_KEY = "verb";
     public static final String URI_KEY = "uri";
 
@@ -20,6 +16,9 @@ class Command {
 
     @Getter
     protected String description;
+
+    @Getter
+    protected Boolean disabled;
 
     @Getter
     protected String verb;
@@ -48,6 +47,7 @@ class Command {
         uri = commandSpecification.getString(URI_KEY);
         wait = commandSpecification.getInteger("wait", 0);
         body = commandSpecification.get("body");
+        disabled = commandSpecification.getBoolean("disabled", false);
         expectedStatus = commandSpecification.getInteger("expectedStatus", getExpectedStatusByVerb(verb));
 
         checks = new ArrayList<>();

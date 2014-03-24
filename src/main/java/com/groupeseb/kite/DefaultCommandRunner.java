@@ -11,7 +11,6 @@ import org.apache.http.entity.ContentType;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
@@ -40,6 +39,11 @@ public class DefaultCommandRunner implements ICommandRunner {
             LOG.info(command.getDescription() + "...");
         }
 
+        if (command.getDisabled()) {
+            LOG.warn("Disabled command : Skipped.");
+            return;
+        }
+
         if (command.getWait() > 0) {
             LOG.info("Waiting for " + command.getWait() + "ms...");
             Thread.sleep(command.getWait());
@@ -56,19 +60,13 @@ public class DefaultCommandRunner implements ICommandRunner {
                         context);
                 break;
             case (GET):
-                get(processedUri, command.getExpectedStatus(), command.getChecks(),
-                        creationLog,
-                        context);
+                get(processedUri, command.getExpectedStatus(), command.getChecks(), context);
                 break;
             case (PUT):
-                put(processedUri, command.getExpectedStatus(), processedBody, command.getChecks(),
-                        creationLog,
-                        context);
+                put(processedUri, command.getExpectedStatus(), processedBody, command.getChecks(), context);
                 break;
             case (DELETE):
-                delete(processedUri, command.getExpectedStatus(), command.getChecks(),
-                        creationLog,
-                        context);
+                delete(processedUri, command.getExpectedStatus(), command.getChecks(), context);
                 break;
         }
     }
@@ -94,7 +92,7 @@ public class DefaultCommandRunner implements ICommandRunner {
         }
     }
 
-    protected void get(String uri, Integer expectedStatus, Collection<Check> checks, CreationLog creationLog, ApplicationContext context) throws ParseException {
+    protected void get(String uri, Integer expectedStatus, Collection<Check> checks, ApplicationContext context) throws ParseException {
         LOG.info("GET " + uri + " (expecting " + expectedStatus + ")");
         Response r = given().contentType(JSON_UTF8)
                 .expect().statusCode(expectedStatus)
@@ -103,7 +101,7 @@ public class DefaultCommandRunner implements ICommandRunner {
         runChecks(checks, r, context);
     }
 
-    protected void put(String uri, Integer expectedStatus, String body, Collection<Check> checks, CreationLog creationLog, ApplicationContext context) throws ParseException {
+    protected void put(String uri, Integer expectedStatus, String body, Collection<Check> checks, ApplicationContext context) throws ParseException {
         LOG.info("PUT " + uri + " (expecting " + expectedStatus + ")");
         Response r = given().contentType(JSON_UTF8).body(body)
                 .expect().statusCode(expectedStatus)
@@ -112,7 +110,7 @@ public class DefaultCommandRunner implements ICommandRunner {
         runChecks(checks, r, context);
     }
 
-    protected void delete(String uri, Integer expectedStatus, Collection<Check> checks, CreationLog creationLog, ApplicationContext context) throws ParseException {
+    protected void delete(String uri, Integer expectedStatus, Collection<Check> checks, ApplicationContext context) throws ParseException {
         LOG.info("DELETE " + uri + " (expecting " + expectedStatus + ")");
         Response r = given().contentType(JSON_UTF8)
                 .expect().statusCode(expectedStatus)
