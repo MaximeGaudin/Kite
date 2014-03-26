@@ -130,6 +130,14 @@ public class Json {
         return defaultValue;
     }
 
+    public Integer getInteger(String key) {
+        if (exists(key)) {
+            return Integer.valueOf(getLong(key).toString());
+        }
+
+        throw new IndexOutOfBoundsException("Key '" + key + "' was not found.");
+    }
+
     public Integer getLength(String key) {
         if (rootObject.get(key) == null) {
             return 0;
