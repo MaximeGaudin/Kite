@@ -4,8 +4,6 @@ import com.groupeseb.kite.Json;
 import com.groupeseb.kite.check.ICheckMethod;
 import org.springframework.stereotype.Component;
 
-import static com.jayway.restassured.path.json.JsonPath.from;
-
 @Component
 public class NopMethod implements ICheckMethod {
     @Override
@@ -14,7 +12,7 @@ public class NopMethod implements ICheckMethod {
     }
 
     @Override
-    public Object apply(Object obj) {
+    public Object apply(Object obj, Json parameters) {
         return obj;
     }
 }

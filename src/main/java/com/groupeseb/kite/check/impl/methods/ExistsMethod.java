@@ -13,7 +13,7 @@ public class ExistsMethod implements ICheckMethod {
     }
 
     @Override
-    public Object apply(Object obj) {
+    public Object apply(Object obj, Json parameters) {
         return obj == null ? "false" : "true";
     }
 }

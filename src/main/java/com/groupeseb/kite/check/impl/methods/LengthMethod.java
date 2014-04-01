@@ -14,7 +14,7 @@ public class LengthMethod implements ICheckMethod {
     }
 
     @Override
-    public Object apply(Object o) {
+    public Object apply(Object o, Json parameters) {
         return Integer.toString(((Collection)o).size());
     }
 }

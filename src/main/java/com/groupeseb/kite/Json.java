@@ -138,6 +138,10 @@ public class Json {
         throw new IndexOutOfBoundsException("Key '" + key + "' was not found.");
     }
 
+    public Integer getLength() {
+        return rootArray.size();
+    }
+
     public Integer getLength(String key) {
         if (rootObject.get(key) == null) {
             return 0;

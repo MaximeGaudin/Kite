@@ -61,7 +61,13 @@ public class DefaultCheckRunner implements ICheckRunner {
         ICheckOperator operator = getMatchingOperator(check.getOperatorName(), context);
         ICheckMethod method = getMatchingMethod(check.getMethodName(), context);
 
-        Object o = JsonPath.read(r.prettyPrint(), check.getFieldName());
-        operator.apply(method.apply(o), check.getExpectedValue(), check.getDescription());
+        Object node = JsonPath.read(r.prettyPrint(), check.getFieldName());
+        if (check.getFieldName().contains("*") && !check.getFieldName().contains("\\*") && node instanceof Iterable) {
+            for (Object o : (Iterable) node) {
+                operator.apply(method.apply(o, check.getParameters()), check.getExpectedValue(), check.getDescription());
+            }
+        } else {
+            operator.apply(method.apply(node, check.getParameters()), check.getExpectedValue(), check.getDescription());
+        }
     }
 }
