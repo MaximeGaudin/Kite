@@ -9,7 +9,7 @@ public class Check {
     protected static final Logger LOG = LoggerFactory.getLogger(Check.class);
 
     @Getter
-    private final String description;
+    protected final String description;
 
     @Getter
     protected final String fieldName;
@@ -26,6 +26,9 @@ public class Check {
     @Getter
     protected final Json parameters;
 
+    @Getter
+    protected final Boolean foreach;
+
     public Check(Json checkSpecification) {
         checkSpecification.checkExistence(new String[]{"field", "expected"});
 
@@ -39,5 +42,6 @@ public class Check {
         operatorName = (checkSpecification.getString("operator") == null) ? "equals" : checkSpecification.getString("operator");
         expectedValue = checkSpecification.getString("expected");
         parameters = checkSpecification.get("parameters");
+        foreach = checkSpecification.getBoolean("foreach", fieldName.contains("*"));
     }
 }

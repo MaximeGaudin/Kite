@@ -1,10 +1,13 @@
 package com.groupeseb.kite;
 
+import com.google.common.base.Preconditions;
 import com.jayway.restassured.response.Response;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
+import java.util.ArrayList;
 
 /**
  * This Helper class was written to make testing Json output easier.
@@ -188,9 +191,20 @@ public class Json {
 
     public Boolean getBoolean(String key, Boolean defaultValue) {
         if (exists(key)) {
-            return (Boolean)rootObject.get(key);
+            return (Boolean) rootObject.get(key);
         }
 
-       return defaultValue;
+        return defaultValue;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> Iterable<T> getIterable(String key) {
+        Object o = rootObject.get(key);
+        if (o == null) {
+            return new ArrayList<>();
+        }
+
+        Preconditions.checkArgument(o instanceof Iterable, "Value associated to " + key + " must be a list.");
+        return (Iterable<T>) o;
     }
 }
