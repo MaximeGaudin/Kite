@@ -48,8 +48,8 @@ public class Check {
         operatorName = (checkSpecification.getString("operator") == null) ? "equals" : checkSpecification.getString("operator");
         expectedValue = checkSpecification.getString("expected");
         parameters = checkSpecification.get("parameters");
-        foreach = checkSpecification.getBoolean("foreach", fieldName.contains("*"));
-        mustMatch = checkSpecification.getBoolean("mustMatch", foreach);
-        skip = checkSpecification.getBoolean("skip", false);
+        foreach = checkSpecification.getBooleanOrDefault("foreach", fieldName.contains("*"));
+        mustMatch = checkSpecification.getBooleanOrDefault("mustMatch", foreach);
+        skip = checkSpecification.getBooleanOrDefault("skip", false);
     }
 }

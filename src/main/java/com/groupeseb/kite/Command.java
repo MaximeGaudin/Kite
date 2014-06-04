@@ -39,6 +39,9 @@ class Command {
     protected Boolean automaticCheck;
 
     @Getter
+    protected Boolean debug;
+
+    @Getter
     protected List<Check> checks;
 
     public Command(Json commandSpecification) {
@@ -48,11 +51,12 @@ class Command {
         description = commandSpecification.getString("description");
         verb = commandSpecification.getString(VERB_KEY);
         uri = commandSpecification.getString(URI_KEY);
-        wait = commandSpecification.getInteger("wait", 0);
+        wait = commandSpecification.getIntegerOrDefault("wait", 0);
         body = commandSpecification.get("body");
-        disabled = commandSpecification.getBoolean("disabled", false);
-        expectedStatus = commandSpecification.getInteger("expectedStatus", getExpectedStatusByVerb(verb));
-        automaticCheck =  commandSpecification.getBoolean("automaticCheck", true);
+        disabled = commandSpecification.getBooleanOrDefault("disabled", false);
+        expectedStatus = commandSpecification.getIntegerOrDefault("expectedStatus", getExpectedStatusByVerb(verb));
+        automaticCheck =  commandSpecification.getBooleanOrDefault("automaticCheck", true);
+        debug = commandSpecification.getBooleanOrDefault("debug", false);
 
         checks = new ArrayList<>();
         for (Integer i = 0; i < commandSpecification.getLength("checks"); ++i) {

@@ -125,7 +125,7 @@ public class Json {
      *
      * @param key The leaf key
      */
-    public Integer getInteger(String key, Integer defaultValue) {
+    public Integer getIntegerOrDefault(String key, Integer defaultValue) {
         if (exists(key)) {
             return Integer.valueOf(getLong(key).toString());
         }
@@ -189,7 +189,7 @@ public class Json {
         return rootObject.get(key) != null;
     }
 
-    public Boolean getBoolean(String key, Boolean defaultValue) {
+    public Boolean getBooleanOrDefault(String key, Boolean defaultValue) {
         if (exists(key)) {
             return (Boolean) rootObject.get(key);
         }

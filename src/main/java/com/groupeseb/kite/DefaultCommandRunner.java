@@ -55,7 +55,7 @@ public class DefaultCommandRunner implements ICommandRunner {
         switch (command.getVerb().toUpperCase()) {
             case (POST):
                 post(command.getName(), processedUri, command.getExpectedStatus(), processedBody, command.getChecks(),
-                        command.getAutomaticCheck(),
+                        command.getAutomaticCheck(), command.getDebug(),
                         creationLog,
                         context);
                 break;
@@ -71,8 +71,13 @@ public class DefaultCommandRunner implements ICommandRunner {
         }
     }
 
-    protected void post(String name, String uri, Integer expectedStatus, String body, Collection<Check> checks, Boolean postCheckEnabled, CreationLog creationLog, ApplicationContext context) throws ParseException {
+    protected void post(String name, String uri, Integer expectedStatus, String body, Collection<Check> checks, Boolean postCheckEnabled, Boolean debug, CreationLog creationLog, ApplicationContext context) throws ParseException {
         LOG.info("[" + name + "] POST " + uri + " (expecting " + expectedStatus + ")");
+
+        if (debug) {
+            LOG.info("[" + name + "] " + body);
+        }
+
         Response postResponse = given().contentType(JSON_UTF8).body(body)
                 .expect().statusCode(expectedStatus)
                 .when().post(uri);
