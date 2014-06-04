@@ -1,12 +1,12 @@
 package com.groupeseb.kite.check;
 
+import com.google.common.base.Preconditions;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.restassured.response.Response;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
-import com.google.common.base.Preconditions;
 
 public class DefaultCheckRunner implements ICheckRunner {
     protected static final Logger LOG = LoggerFactory.getLogger(DefaultCheckRunner.class);
@@ -59,14 +59,26 @@ public class DefaultCheckRunner implements ICheckRunner {
     public void verify(Check check, Response r, ApplicationContext context) throws ParseException {
         LOG.info("Checking " + check.getDescription() + "...");
 
+        if(check.getSkip()) {
+            LOG.warn("Check skipped (" + check.getDescription() + ")");
+            return ;
+        }
+
         ICheckOperator operator = getMatchingOperator(check.getOperatorName(), context);
         ICheckMethod method = getMatchingMethod(check.getMethodName(), context);
 
         Object node = JsonPath.read(r.prettyPrint(), check.getFieldName());
-        if (check.foreach) {
+        if (check.getForeach()) {
             Preconditions.checkArgument(node instanceof Iterable, "Using 'forEach' mode for check requires an iterable node.");
 
-            for (Object o : (Iterable) node) {
+            @SuppressWarnings("unchecked")
+            Iterable nodeList = (Iterable)node;
+
+            if (check.getMustMatch()) {
+                Preconditions.checkArgument(nodeList.iterator().hasNext(), "No match found but 'mustMatch' was set to true.");
+            }
+
+            for (Object o : nodeList) {
                 operator.apply(method.apply(o, check.getParameters()), check.getExpectedValue(), check.getDescription());
             }
         } else {

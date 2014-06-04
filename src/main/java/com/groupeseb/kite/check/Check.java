@@ -29,6 +29,12 @@ public class Check {
     @Getter
     protected final Boolean foreach;
 
+    @Getter
+    protected final Boolean mustMatch;
+
+    @Getter
+    protected final Boolean skip;
+
     public Check(Json checkSpecification) {
         checkSpecification.checkExistence(new String[]{"field", "expected"});
 
@@ -43,5 +49,7 @@ public class Check {
         expectedValue = checkSpecification.getString("expected");
         parameters = checkSpecification.get("parameters");
         foreach = checkSpecification.getBoolean("foreach", fieldName.contains("*"));
+        mustMatch = checkSpecification.getBoolean("mustMatch", foreach);
+        skip = checkSpecification.getBoolean("skip", false);
     }
 }
