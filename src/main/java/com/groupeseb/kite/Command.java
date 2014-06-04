@@ -36,6 +36,9 @@ class Command {
     protected Integer wait;
 
     @Getter
+    protected Boolean automaticCheck;
+
+    @Getter
     protected List<Check> checks;
 
     public Command(Json commandSpecification) {
@@ -49,6 +52,7 @@ class Command {
         body = commandSpecification.get("body");
         disabled = commandSpecification.getBoolean("disabled", false);
         expectedStatus = commandSpecification.getInteger("expectedStatus", getExpectedStatusByVerb(verb));
+        automaticCheck =  commandSpecification.getBoolean("automaticCheck", true);
 
         checks = new ArrayList<>();
         for (Integer i = 0; i < commandSpecification.getLength("checks"); ++i) {

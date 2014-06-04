@@ -34,7 +34,7 @@ public class DefaultCommandRunner implements ICommandRunner {
     ICheckRunner checkRunner = new DefaultCheckRunner();
 
     @Override
-    public void execute(Command command, Boolean postCheckEnabled, CreationLog creationLog, ApplicationContext context) throws Exception {
+    public void execute(Command command, CreationLog creationLog, ApplicationContext context) throws Exception {
         if (command.getDescription() != null) {
             LOG.info(command.getDescription() + "...");
         }
@@ -55,7 +55,7 @@ public class DefaultCommandRunner implements ICommandRunner {
         switch (command.getVerb().toUpperCase()) {
             case (POST):
                 post(command.getName(), processedUri, command.getExpectedStatus(), processedBody, command.getChecks(),
-                        postCheckEnabled,
+                        command.getAutomaticCheck(),
                         creationLog,
                         context);
                 break;
@@ -134,7 +134,7 @@ public class DefaultCommandRunner implements ICommandRunner {
         Pattern uuidPattern = Pattern.compile("\\{\\{UUID:(.+?)\\}\\}");
         Matcher uuidMatcher = uuidPattern.matcher(scenario);
 
-        Map<String, String> uuids = new HashMap();
+        Map<String, String> uuids = new HashMap<>();
 
         while (uuidMatcher.find()) {
             String name = uuidMatcher.group(1);
