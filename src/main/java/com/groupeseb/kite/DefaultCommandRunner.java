@@ -25,13 +25,13 @@ import static com.jayway.restassured.RestAssured.given;
 public class DefaultCommandRunner implements ICommandRunner {
     protected static final Logger LOG = LoggerFactory.getLogger(Command.class);
 
-    public static final String JSON_UTF8 = ContentType.create(ContentType.APPLICATION_JSON.getMimeType(), "UTF-8").toString();
+    private static final String JSON_UTF8 = ContentType.create(ContentType.APPLICATION_JSON.getMimeType(), "UTF-8").toString();
     private static final String POST = "POST";
     private static final String PUT = "PUT";
     private static final String DELETE = "DELETE";
     private static final String GET = "GET";
 
-    ICheckRunner checkRunner = new DefaultCheckRunner();
+    private final ICheckRunner checkRunner = new DefaultCheckRunner();
 
     @Override
     public void execute(Command command, CreationLog creationLog, ApplicationContext context) throws Exception {
@@ -71,7 +71,7 @@ public class DefaultCommandRunner implements ICommandRunner {
         }
     }
 
-    protected void post(String name, String uri, Integer expectedStatus, String body, Collection<Check> checks, Boolean postCheckEnabled, Boolean debug, CreationLog creationLog, ApplicationContext context) throws ParseException {
+    void post(String name, String uri, Integer expectedStatus, String body, Collection<Check> checks, Boolean postCheckEnabled, Boolean debug, CreationLog creationLog, ApplicationContext context) throws ParseException {
         LOG.info("[" + name + "] POST " + uri + " (expecting " + expectedStatus + ")");
 
         if (debug) {
@@ -97,7 +97,7 @@ public class DefaultCommandRunner implements ICommandRunner {
         }
     }
 
-    protected void get(String uri, Integer expectedStatus, Collection<Check> checks, ApplicationContext context) throws ParseException {
+    void get(String uri, Integer expectedStatus, Collection<Check> checks, ApplicationContext context) throws ParseException {
         LOG.info("GET " + uri + " (expecting " + expectedStatus + ")");
         Response r = given().contentType(JSON_UTF8)
                 .expect().statusCode(expectedStatus)
@@ -106,7 +106,7 @@ public class DefaultCommandRunner implements ICommandRunner {
         runChecks(checks, r, context);
     }
 
-    protected void put(String uri, Integer expectedStatus, String body, Collection<Check> checks, ApplicationContext context) throws ParseException {
+    void put(String uri, Integer expectedStatus, String body, Collection<Check> checks, ApplicationContext context) throws ParseException {
         LOG.info("PUT " + uri + " (expecting " + expectedStatus + ")");
         Response r = given().contentType(JSON_UTF8).body(body)
                 .expect().statusCode(expectedStatus)
@@ -115,7 +115,7 @@ public class DefaultCommandRunner implements ICommandRunner {
         runChecks(checks, r, context);
     }
 
-    protected void delete(String uri, Integer expectedStatus, Collection<Check> checks, ApplicationContext context) throws ParseException {
+    void delete(String uri, Integer expectedStatus, Collection<Check> checks, ApplicationContext context) throws ParseException {
         LOG.info("DELETE " + uri + " (expecting " + expectedStatus + ")");
         Response r = given().contentType(JSON_UTF8)
                 .expect().statusCode(expectedStatus)
@@ -129,7 +129,7 @@ public class DefaultCommandRunner implements ICommandRunner {
                 .when().get(uri);
     }
 
-    protected void runChecks(Collection<Check> checks, Response r, ApplicationContext context) throws ParseException {
+    void runChecks(Collection<Check> checks, Response r, ApplicationContext context) throws ParseException {
         for (Check check : checks) {
             checkRunner.verify(check, r, context);
         }

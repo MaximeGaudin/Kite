@@ -22,10 +22,10 @@ public class Scenario {
     protected String description;
 
     @Getter
-    protected Collection<Command> commands = new ArrayList<>();
+    protected final Collection<Command> commands = new ArrayList<>();
 
     @Getter
-    protected List<Scenario> dependencies = new ArrayList<>();
+    protected final List<Scenario> dependencies = new ArrayList<>();
 
     /**
      * @param filename The (class)path to the scenario file.

@@ -7,8 +7,8 @@ import java.util.Map;
 
 @NoArgsConstructor
 public class CreationLog {
-    private Map<String, String> uuids = new HashMap<>();
-    private Map<String, String> locations = new HashMap<>();
+    private final Map<String, String> uuids = new HashMap<>();
+    private final Map<String, String> locations = new HashMap<>();
 
     public void extend(CreationLog creationLog) {
         this.uuids.putAll(creationLog.uuids);

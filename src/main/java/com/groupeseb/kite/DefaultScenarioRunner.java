@@ -11,15 +11,15 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class DefaultScenarioRunner implements IScenarioRunner {
     protected static final Logger LOG = LoggerFactory.getLogger(Command.class);
 
-    protected ApplicationContext context = new ClassPathXmlApplicationContext("META-INF/default-beans.xml");
+    private final ApplicationContext context = new ClassPathXmlApplicationContext("META-INF/default-beans.xml");
 
-    ICommandRunner commandRunner = new DefaultCommandRunner();
+    private final ICommandRunner commandRunner = new DefaultCommandRunner();
 
     public void execute(Scenario scenario) throws Exception {
         execute(scenario, new CreationLog());
     }
 
-    protected CreationLog execute(Scenario scenario, CreationLog creationLog) throws Exception {
+    CreationLog execute(Scenario scenario, CreationLog creationLog) throws Exception {
         for (Scenario dependency : scenario.getDependencies()) {
             creationLog.extend(execute(dependency, creationLog));
         }

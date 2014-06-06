@@ -71,7 +71,7 @@ public class DefaultCheckRunner implements ICheckRunner {
         if (check.getForeach()) {
             Preconditions.checkArgument(node instanceof Iterable, "Using 'forEach' mode for check requires an iterable node.");
 
-            @SuppressWarnings("unchecked")
+            @SuppressWarnings({"unchecked", "ConstantConditions"})
             Iterable nodeList = (Iterable)node;
 
             if (check.getMustMatch()) {

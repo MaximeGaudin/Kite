@@ -8,41 +8,41 @@ import java.util.ArrayList;
 import java.util.List;
 
 class Command {
-    public static final String VERB_KEY = "verb";
-    public static final String URI_KEY = "uri";
+    private static final String VERB_KEY = "verb";
+    private static final String URI_KEY = "uri";
 
     @Getter
-    protected String name;
+    private final String name;
 
     @Getter
-    protected String description;
+    private final String description;
 
     @Getter
-    protected Boolean disabled;
+    private final Boolean disabled;
 
     @Getter
-    protected String verb;
+    private final String verb;
 
     @Getter
-    protected String uri;
+    private final String uri;
 
     @Getter
-    protected Json body;
+    private final Json body;
 
     @Getter
-    protected Integer expectedStatus;
+    private final Integer expectedStatus;
 
     @Getter
-    protected Integer wait;
+    private final Integer wait;
 
     @Getter
-    protected Boolean automaticCheck;
+    private final Boolean automaticCheck;
 
     @Getter
-    protected Boolean debug;
+    private final Boolean debug;
 
     @Getter
-    protected List<Check> checks;
+    private final List<Check> checks;
 
     public Command(Json commandSpecification) {
         commandSpecification.checkExistence(new String[]{VERB_KEY, URI_KEY});

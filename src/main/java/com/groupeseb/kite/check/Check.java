@@ -9,31 +9,31 @@ public class Check {
     protected static final Logger LOG = LoggerFactory.getLogger(Check.class);
 
     @Getter
-    protected final String description;
+    private final String description;
 
     @Getter
-    protected final String fieldName;
+    private final String fieldName;
 
     @Getter
-    protected final String methodName;
+    private final String methodName;
 
     @Getter
-    protected final String operatorName;
+    private final String operatorName;
 
     @Getter
-    protected final String expectedValue;
+    private final String expectedValue;
 
     @Getter
-    protected final Json parameters;
+    private final Json parameters;
 
     @Getter
-    protected final Boolean foreach;
+    private final Boolean foreach;
 
     @Getter
-    protected final Boolean mustMatch;
+    private final Boolean mustMatch;
 
     @Getter
-    protected final Boolean skip;
+    private final Boolean skip;
 
     public Check(Json checkSpecification) {
         checkSpecification.checkExistence(new String[]{"field", "expected"});
