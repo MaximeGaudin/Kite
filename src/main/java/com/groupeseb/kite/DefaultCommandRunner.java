@@ -5,12 +5,11 @@ import com.groupeseb.kite.check.DefaultCheckRunner;
 import com.groupeseb.kite.check.ICheckRunner;
 import com.jayway.restassured.response.Response;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.json.simple.parser.ParseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
@@ -20,32 +19,30 @@ import java.util.regex.Pattern;
 
 import static com.jayway.restassured.RestAssured.given;
 
+@Slf4j
 @NoArgsConstructor
 @Component
 public class DefaultCommandRunner implements ICommandRunner {
-    protected static final Logger LOG = LoggerFactory.getLogger(Command.class);
-
     private static final String JSON_UTF8 = ContentType.create(ContentType.APPLICATION_JSON.getMimeType(), "UTF-8").toString();
     private static final String POST = "POST";
     private static final String PUT = "PUT";
     private static final String DELETE = "DELETE";
     private static final String GET = "GET";
-
     private final ICheckRunner checkRunner = new DefaultCheckRunner();
 
     @Override
     public void execute(Command command, CreationLog creationLog, ApplicationContext context) throws Exception {
         if (command.getDescription() != null) {
-            LOG.info(command.getDescription() + "...");
+            log.info(command.getDescription() + "...");
         }
 
         if (command.getDisabled()) {
-            LOG.warn("Disabled command : Skipped.");
+            log.warn("Disabled command : Skipped.");
             return;
         }
 
         if (command.getWait() > 0) {
-            LOG.info("Waiting for " + command.getWait() + "ms...");
+            log.info("Waiting for " + command.getWait() + "ms...");
             Thread.sleep(command.getWait());
         }
 
@@ -72,10 +69,10 @@ public class DefaultCommandRunner implements ICommandRunner {
     }
 
     void post(String name, String uri, Integer expectedStatus, String body, Collection<Check> checks, Boolean postCheckEnabled, Boolean debug, CreationLog creationLog, ApplicationContext context) throws ParseException {
-        LOG.info("[" + name + "] POST " + uri + " (expecting " + expectedStatus + ")");
+        log.info("[" + name + "] POST " + uri + " (expecting " + expectedStatus + ")");
 
         if (debug) {
-            LOG.info("[" + name + "] " + body);
+            log.info("[" + name + "] " + body);
         }
 
         Response postResponse = given().contentType(JSON_UTF8).body(body)
@@ -86,7 +83,7 @@ public class DefaultCommandRunner implements ICommandRunner {
 
         if (postCheckEnabled) {
             String location = postResponse.getHeader("Location");
-            LOG.info("Checking resource: " + location + "...");
+            log.info("Checking resource: " + location + "...");
             given().header("Accept-Encoding", "UTF-8")
                     .expect().statusCode(HttpStatus.SC_OK)
                     .when().get(location);
@@ -98,7 +95,7 @@ public class DefaultCommandRunner implements ICommandRunner {
     }
 
     void get(String uri, Integer expectedStatus, Collection<Check> checks, ApplicationContext context) throws ParseException {
-        LOG.info("GET " + uri + " (expecting " + expectedStatus + ")");
+        log.info("GET " + uri + " (expecting " + expectedStatus + ")");
         Response r = given().contentType(JSON_UTF8)
                 .expect().statusCode(expectedStatus)
                 .when().get(uri);
@@ -107,7 +104,7 @@ public class DefaultCommandRunner implements ICommandRunner {
     }
 
     void put(String uri, Integer expectedStatus, String body, Collection<Check> checks, ApplicationContext context) throws ParseException {
-        LOG.info("PUT " + uri + " (expecting " + expectedStatus + ")");
+        log.info("PUT " + uri + " (expecting " + expectedStatus + ")");
         Response r = given().contentType(JSON_UTF8).body(body)
                 .expect().statusCode(expectedStatus)
                 .when().put(uri);
@@ -116,14 +113,14 @@ public class DefaultCommandRunner implements ICommandRunner {
     }
 
     void delete(String uri, Integer expectedStatus, Collection<Check> checks, ApplicationContext context) throws ParseException {
-        LOG.info("DELETE " + uri + " (expecting " + expectedStatus + ")");
+        log.info("DELETE " + uri + " (expecting " + expectedStatus + ")");
         Response r = given().contentType(JSON_UTF8)
                 .expect().statusCode(expectedStatus)
                 .when().delete(uri);
 
         runChecks(checks, r, context);
 
-        LOG.info("Checking resource: " + uri + "...");
+        log.info("Checking resource: " + uri + "...");
         given().contentType(JSON_UTF8)
                 .expect().statusCode(HttpStatus.SC_NOT_FOUND)
                 .when().get(uri);

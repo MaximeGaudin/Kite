@@ -1,18 +1,15 @@
 package com.groupeseb.kite;
 
 import lombok.NoArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 
+@Slf4j
 @NoArgsConstructor
 public class DefaultScenarioRunner implements IScenarioRunner {
-    protected static final Logger LOG = LoggerFactory.getLogger(Command.class);
-
     private final ApplicationContext context = new ClassPathXmlApplicationContext("META-INF/default-beans.xml");
-
     private final ICommandRunner commandRunner = new DefaultCommandRunner();
 
     public void execute(Scenario scenario) throws Exception {
@@ -24,7 +21,7 @@ public class DefaultScenarioRunner implements IScenarioRunner {
             creationLog.extend(execute(dependency, creationLog));
         }
 
-        LOG.info("Testing : " + scenario.getDescription() + "...");
+        log.info("Testing : " + scenario.getDescription() + "...");
 
         for (Command command : scenario.getCommands()) {
             commandRunner.execute(command, creationLog, context);

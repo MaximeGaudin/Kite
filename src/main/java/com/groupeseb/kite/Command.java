@@ -7,41 +7,21 @@ import org.apache.http.HttpStatus;
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 class Command {
     private static final String VERB_KEY = "verb";
     private static final String URI_KEY = "uri";
 
-    @Getter
     private final String name;
-
-    @Getter
     private final String description;
-
-    @Getter
     private final Boolean disabled;
-
-    @Getter
     private final String verb;
-
-    @Getter
     private final String uri;
-
-    @Getter
     private final Json body;
-
-    @Getter
     private final Integer expectedStatus;
-
-    @Getter
     private final Integer wait;
-
-    @Getter
     private final Boolean automaticCheck;
-
-    @Getter
     private final Boolean debug;
-
-    @Getter
     private final List<Check> checks;
 
     public Command(Json commandSpecification) {
@@ -55,7 +35,7 @@ class Command {
         body = commandSpecification.get("body");
         disabled = commandSpecification.getBooleanOrDefault("disabled", false);
         expectedStatus = commandSpecification.getIntegerOrDefault("expectedStatus", getExpectedStatusByVerb(verb));
-        automaticCheck =  commandSpecification.getBooleanOrDefault("automaticCheck", true);
+        automaticCheck = commandSpecification.getBooleanOrDefault("automaticCheck", true);
         debug = commandSpecification.getBooleanOrDefault("debug", false);
 
         checks = new ArrayList<>();

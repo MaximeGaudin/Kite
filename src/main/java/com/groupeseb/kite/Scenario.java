@@ -13,19 +13,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+@Getter
 public class Scenario {
     public static final String DESCRIPTION_KEY = "description";
     public static final String COMMANDS_KEY = "commands";
     public static final String DEPENDENCIES_KEY = "dependencies";
 
-    @Getter
-    protected String description;
-
-    @Getter
     protected final Collection<Command> commands = new ArrayList<>();
-
-    @Getter
     protected final List<Scenario> dependencies = new ArrayList<>();
+    protected String description;
 
     /**
      * @param filename The (class)path to the scenario file.
