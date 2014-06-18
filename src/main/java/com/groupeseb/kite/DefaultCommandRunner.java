@@ -75,7 +75,7 @@ public class DefaultCommandRunner implements ICommandRunner {
             log.info("[" + name + "] " + body);
         }
 
-        Response postResponse = given().contentType(JSON_UTF8).body(body)
+        Response postResponse = given().contentType(JSON_UTF8).body((body == null) ? "" : body)
                 .expect().statusCode(expectedStatus)
                 .when().post(uri);
 
