@@ -73,7 +73,7 @@ public class DefaultCheckRunner implements ICheckRunner {
             Iterable nodeList = (Iterable) node;
 
             if (check.getMustMatch()) {
-                Preconditions.checkArgument(nodeList.iterator().hasNext(), "No match found but 'mustMatch' was set to true.");
+                Preconditions.checkArgument(nodeList.iterator().hasNext(), check.getDescription() + " (No match found but 'mustMatch' was set to true)");
             }
 
             for (Object o : nodeList) {
