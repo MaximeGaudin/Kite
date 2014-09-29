@@ -54,7 +54,7 @@ public class DefaultCheckRunner implements ICheckRunner {
     }
 
     @Override
-    public void verify(Check check, Response r, ApplicationContext context) throws ParseException {
+    public void verify(Check check, String responseBody, ApplicationContext context) throws ParseException {
         log.info("Checking " + check.getDescription() + "...");
 
         if (check.getSkip()) {
@@ -65,7 +65,7 @@ public class DefaultCheckRunner implements ICheckRunner {
         ICheckOperator operator = getMatchingOperator(check.getOperatorName(), context);
         ICheckMethod method = getMatchingMethod(check.getMethodName(), context);
 
-        Object node = JsonPath.read(r.prettyPrint(), check.getFieldName());
+        Object node = JsonPath.read(responseBody, check.getFieldName());
         if (check.getForeach()) {
             Preconditions.checkArgument(node instanceof Iterable, "Using 'forEach' mode for check requires an iterable node.");
 

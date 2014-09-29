@@ -9,19 +9,19 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @Getter
 public class Scenario {
     public static final String DESCRIPTION_KEY = "description";
+    public static final String VARIABLE_KEY = "variables";
     public static final String COMMANDS_KEY = "commands";
     public static final String DEPENDENCIES_KEY = "dependencies";
 
     protected final Collection<Command> commands = new ArrayList<>();
     protected final List<Scenario> dependencies = new ArrayList<>();
     protected String description;
+    protected Map<String, String> variables;
 
     /**
      * @param filename The (class)path to the scenario file.
@@ -51,6 +51,9 @@ public class Scenario {
         jsonScenario.checkExistence(new String[]{DESCRIPTION_KEY, COMMANDS_KEY});
 
         this.description = jsonScenario.getString(DESCRIPTION_KEY);
+        this.variables = (Map<String, String>) jsonScenario.getMap(VARIABLE_KEY);
+
+
 
         for (String dependency : jsonScenario.<String>getIterable(DEPENDENCIES_KEY)) {
             dependencies.add(new Scenario(dependency));

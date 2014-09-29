@@ -3,21 +3,29 @@ package com.groupeseb.kite;
 import com.groupeseb.kite.check.Check;
 import com.groupeseb.kite.check.DefaultCheckRunner;
 import com.groupeseb.kite.check.ICheckRunner;
+import com.groupeseb.kite.function.Function;
+import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.response.Response;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpResponseException;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.ContentType;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.json.simple.parser.ParseException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.io.IOException;
+import java.util.Collection;
 
 import static com.jayway.restassured.RestAssured.given;
+import static org.testng.AssertJUnit.assertEquals;
 
 @Slf4j
 @NoArgsConstructor
@@ -32,6 +40,8 @@ public class DefaultCommandRunner implements ICommandRunner {
 
     @Override
     public void execute(Command command, CreationLog creationLog, ApplicationContext context) throws Exception {
+        creationLog.setAvailableFunctions(context.getBeansOfType(Function.class).values());
+
         if (command.getDescription() != null) {
             log.info(command.getDescription() + "...");
         }
@@ -46,126 +56,105 @@ public class DefaultCommandRunner implements ICommandRunner {
             Thread.sleep(command.getWait());
         }
 
-        String processedUri = processPlaceholders(command.getName(), command.getUri(), creationLog);
-        String processedBody = (command.getBody() == null) ? null : processPlaceholders(command.getName(), command.getBody().toString(), creationLog);
-
         switch (command.getVerb().toUpperCase()) {
             case (POST):
-                post(command.getName(), processedUri, command.getExpectedStatus(), processedBody, command.getChecks(),
-                        command.getAutomaticCheck(), command.getDebug(),
-                        creationLog,
-                        context);
+                post(command, creationLog, context);
                 break;
             case (GET):
-                get(processedUri, command.getExpectedStatus(), command.getChecks(), context);
+                get(command, creationLog, context);
                 break;
             case (PUT):
-                put(processedUri, command.getExpectedStatus(), processedBody, command.getChecks(), context);
+                put(command, creationLog, context);
                 break;
             case (DELETE):
-                delete(processedUri, command.getExpectedStatus(), command.getChecks(), context);
+                delete(command, creationLog, context);
                 break;
         }
+
+        log.info("[" + command.getName() + "] OK");
     }
 
-    void post(String name, String uri, Integer expectedStatus, String body, Collection<Check> checks, Boolean postCheckEnabled, Boolean debug, CreationLog creationLog, ApplicationContext context) throws ParseException {
-        log.info("[" + name + "] POST " + uri + " (expecting " + expectedStatus + ")");
+    void post(Command command, CreationLog creationLog, ApplicationContext context) throws ParseException {
+        log.info("[" + command.getName() + "] POST " + command.getProcessedURI(creationLog) + " (expecting " + command.getExpectedStatus() + ")");
 
-        if (debug) {
-            log.info("[" + name + "] " + body);
+        if (command.getDebug()) {
+            log.info("[" + command.getName() + "] " + command.getProcessedBody(creationLog));
         }
 
-        Response postResponse = given().contentType(JSON_UTF8).body((body == null) ? "" : body)
-                .expect().statusCode(expectedStatus)
-                .when().post(uri);
+        Response postResponse = given()
+                .contentType(JSON_UTF8).headers(command.getProcessedHeaders(creationLog))
+                .body(command.getProcessedBody(creationLog)).log().everything(true)
+                .expect().statusCode(command.getExpectedStatus())
+                .when().post(command.getProcessedURI(creationLog));
 
-        runChecks(checks, postResponse, context);
+        runChecks(command.getChecks(creationLog), postResponse.prettyPrint(), context);
 
-        if (postCheckEnabled) {
+        if (command.getAutomaticCheck()) {
             String location = postResponse.getHeader("Location");
             log.info("Checking resource: " + location + "...");
-            given().header("Accept-Encoding", "UTF-8")
+            given().header("Accept-Encoding", "UTF-8").headers(command.getProcessedHeaders(creationLog))
                     .expect().statusCode(HttpStatus.SC_OK)
                     .when().get(location);
 
-            if (name != null) {
-                creationLog.addLocation(name, location);
+            if (command.getName() != null) {
+                creationLog.addLocation(command.getName(), location);
             }
         }
     }
 
-    void get(String uri, Integer expectedStatus, Collection<Check> checks, ApplicationContext context) throws ParseException {
-        log.info("GET " + uri + " (expecting " + expectedStatus + ")");
-        Response r = given().contentType(JSON_UTF8)
-                .expect().statusCode(expectedStatus)
-                .when().get(uri);
+    void get(Command command, CreationLog creationLog, ApplicationContext context) throws ParseException, IOException {
+        log.info("GET " + command.getProcessedURI(creationLog) + " (expecting " + command.getExpectedStatus() + ")");
 
-        runChecks(checks, r, context);
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+        String requestURI = command.getProcessedURI(creationLog);
+        if (!command.getProcessedURI(creationLog).contains("http://") && !command.getProcessedURI(creationLog).contains("https://")) {
+            requestURI = RestAssured.baseURI + ":" + RestAssured.port + RestAssured.basePath + command.getProcessedURI(creationLog);
+        }
+
+        HttpGet httpget = new HttpGet(requestURI);
+        httpget.addHeader("Content-Type", "application/json");
+
+        CloseableHttpResponse response = httpClient.execute(httpget);
+        ResponseHandler<String> handler = new BasicResponseHandler();
+
+        assertEquals(command.getExpectedStatus() + " expected but " + response.getStatusLine().getStatusCode() + " received.",
+                response.getStatusLine().getStatusCode(), (int) command.getExpectedStatus());
+
+        try {
+            String responseBody = handler.handleResponse(response);
+            runChecks(command.getChecks(creationLog), responseBody, context);
+        } catch (HttpResponseException e) {
+            // Nothing to do here
+        }
     }
 
-    void put(String uri, Integer expectedStatus, String body, Collection<Check> checks, ApplicationContext context) throws ParseException {
-        log.info("PUT " + uri + " (expecting " + expectedStatus + ")");
-        Response r = given().contentType(JSON_UTF8).body(body)
-                .expect().statusCode(expectedStatus)
-                .when().put(uri);
+    void put(Command command, CreationLog creationLog, ApplicationContext context) throws ParseException {
+        log.info("PUT " + command.getProcessedURI(creationLog) + " (expecting " + command.getExpectedStatus() + ")");
+        Response r = given().contentType(JSON_UTF8).body(command.getProcessedBody(creationLog))
+                .expect().statusCode(command.getExpectedStatus())
+                .when().put(command.getProcessedURI(creationLog));
 
-        runChecks(checks, r, context);
+        runChecks(command.getChecks(creationLog), r.prettyPrint(), context);
     }
 
-    void delete(String uri, Integer expectedStatus, Collection<Check> checks, ApplicationContext context) throws ParseException {
-        log.info("DELETE " + uri + " (expecting " + expectedStatus + ")");
+    void delete(Command command, CreationLog creationLog, ApplicationContext context) throws ParseException {
+        log.info("DELETE " + command.getProcessedURI(creationLog) + " (expecting " + command.getExpectedStatus() + ")");
         Response r = given().contentType(JSON_UTF8)
-                .expect().statusCode(expectedStatus)
-                .when().delete(uri);
+                .expect().statusCode(command.getExpectedStatus())
+                .when().delete(command.getProcessedURI(creationLog));
 
-        runChecks(checks, r, context);
+        runChecks(command.getChecks(creationLog), r.prettyPrint(), context);
 
-        log.info("Checking resource: " + uri + "...");
+        log.info("Checking resource: " + command.getProcessedURI(creationLog) + "...");
         given().contentType(JSON_UTF8)
                 .expect().statusCode(HttpStatus.SC_NOT_FOUND)
-                .when().get(uri);
+                .when().get(command.getProcessedURI(creationLog));
     }
 
-    void runChecks(Collection<Check> checks, Response r, ApplicationContext context) throws ParseException {
+    void runChecks(Collection<Check> checks, String responseBody, ApplicationContext context) throws ParseException {
         for (Check check : checks) {
-            checkRunner.verify(check, r, context);
+            checkRunner.verify(check, responseBody, context);
         }
     }
-
-    private Map<String, String> getUUIDs(String scenario, CreationLog creationLog) {
-        Pattern uuidPattern = Pattern.compile("\\{\\{UUID:(.+?)\\}\\}");
-        Matcher uuidMatcher = uuidPattern.matcher(scenario);
-
-        Map<String, String> uuids = new HashMap<>();
-
-        while (uuidMatcher.find()) {
-            String name = uuidMatcher.group(1);
-
-            if (!creationLog.getUUIDs().containsKey(name)) {
-                uuids.put(name, UUID.randomUUID().toString());
-            }
-        }
-
-        return uuids;
-    }
-
-    private String processPlaceholders(String name, String body, CreationLog creationLog) {
-        String processedBody = body.replace("{{UUID}}", "{{UUID:" + name + "}}");
-
-        Map<String, String> uuids = getUUIDs(processedBody, creationLog);
-        creationLog.addUUIDs(uuids);
-
-        for (Map.Entry<String, String> entry : creationLog.getUUIDs().entrySet()) {
-            processedBody = processedBody.replace("{{UUID:" + entry.getKey() + "}}", entry.getValue());
-        }
-
-        for (Map.Entry<String, String> entry : creationLog.getLocations().entrySet()) {
-            processedBody = processedBody.replace("{{Location:" + entry.getKey() + "}}", entry.getValue());
-        }
-
-        processedBody = processedBody.replace("{{Timestamp:Now}}", DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format(new Date()));
-
-        return processedBody;
-    }
-
 }

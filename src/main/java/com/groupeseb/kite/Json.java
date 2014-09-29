@@ -8,6 +8,8 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This Helper class was written to make testing Json output easier.
@@ -206,5 +208,9 @@ public class Json {
 
         Preconditions.checkArgument(o instanceof Iterable, "Value associated to " + key + " must be a list.");
         return (Iterable<T>) o;
+    }
+
+    public Map getMap(String key) {
+        return rootObject.containsKey(key) ? (Map) rootObject.get(key) : new HashMap();
     }
 }

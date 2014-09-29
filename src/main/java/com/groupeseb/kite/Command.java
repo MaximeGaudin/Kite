@@ -5,7 +5,9 @@ import lombok.Getter;
 import org.apache.http.HttpStatus;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 class Command {
@@ -22,9 +24,14 @@ class Command {
     private final Integer wait;
     private final Boolean automaticCheck;
     private final Boolean debug;
-    private final List<Check> checks;
+    private final Map<String, String> headers;
+
+    private final Json commandSpecification;
+
 
     public Command(Json commandSpecification) {
+        this.commandSpecification = commandSpecification;
+
         commandSpecification.checkExistence(new String[]{VERB_KEY, URI_KEY});
 
         name = commandSpecification.getString("name");
@@ -35,13 +42,19 @@ class Command {
         body = commandSpecification.get("body");
         disabled = commandSpecification.getBooleanOrDefault("disabled", false);
         expectedStatus = commandSpecification.getIntegerOrDefault("expectedStatus", getExpectedStatusByVerb(verb));
-        automaticCheck = commandSpecification.getBooleanOrDefault("automaticCheck", true);
+        automaticCheck = commandSpecification.getBooleanOrDefault("automaticCheck", expectedStatus.toString().startsWith("2") ? true : false);
         debug = commandSpecification.getBooleanOrDefault("debug", false);
 
-        checks = new ArrayList<>();
+        headers = commandSpecification.getMap("headers");
+    }
+
+    public List<Check> getChecks(CreationLog creationLog) {
+        List<Check> checks = new ArrayList<>();
         for (Integer i = 0; i < commandSpecification.getLength("checks"); ++i) {
-            checks.add(new Check(commandSpecification.get("checks").get(i)));
+            checks.add(new Check(commandSpecification.get("checks").get(i), creationLog));
         }
+
+        return checks;
     }
 
     private Integer getExpectedStatusByVerb(String string) {
@@ -60,5 +73,26 @@ class Command {
             default:
                 return HttpStatus.SC_OK;
         }
+    }
+
+    String getProcessedURI(CreationLog creationLog) {
+      return creationLog.processPlaceholders(getName(), getUri());
+    }
+
+    String getProcessedBody(CreationLog creationLog) {
+        if(getBody() == null) {
+            return "";
+        }
+        return creationLog.processPlaceholders(getName(), getBody().toString());
+    }
+
+    Map<String, String> getProcessedHeaders(CreationLog creationLog) {
+        Map<String, String> processedHeaders = new HashMap<>(getHeaders());
+
+        for (Map.Entry<String, String> entry : processedHeaders.entrySet()) {
+            processedHeaders.put(entry.getKey(), creationLog.processPlaceholders(getName(), processedHeaders.get(entry.getKey())));
+        }
+
+        return processedHeaders;
     }
 }

@@ -1,5 +1,6 @@
 package com.groupeseb.kite.check;
 
+import com.groupeseb.kite.CreationLog;
 import com.groupeseb.kite.Json;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +18,7 @@ public class Check {
     private final Boolean mustMatch;
     private final Boolean skip;
 
-    public Check(Json checkSpecification) {
+    public Check(Json checkSpecification, CreationLog creationLog) {
         checkSpecification.checkExistence(new String[]{"field", "expected"});
 
         if (!checkSpecification.exists("description")) {
@@ -28,7 +29,7 @@ public class Check {
         fieldName = checkSpecification.getString("field");
         methodName = (checkSpecification.getString("method") == null) ? "nop" : checkSpecification.getString("method");
         operatorName = (checkSpecification.getString("operator") == null) ? "equals" : checkSpecification.getString("operator");
-        expectedValue = checkSpecification.getString("expected");
+        expectedValue = creationLog.processPlaceholders(checkSpecification.getString("expected"));
         parameters = checkSpecification.get("parameters");
         foreach = checkSpecification.getBooleanOrDefault("foreach", fieldName.contains("*"));
         mustMatch = checkSpecification.getBooleanOrDefault("mustMatch", foreach);
