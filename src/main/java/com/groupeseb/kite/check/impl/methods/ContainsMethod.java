@@ -4,6 +4,8 @@ package com.groupeseb.kite.check.impl.methods;
 import com.google.common.base.Preconditions;
 import com.groupeseb.kite.Json;
 import com.groupeseb.kite.check.ICheckMethod;
+
+import net.minidev.json.JSONArray;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -15,15 +17,21 @@ public class ContainsMethod implements ICheckMethod {
 
     @Override
     public Object apply(Object obj, Json parameters) {
-        Preconditions.checkArgument(obj instanceof String,
-                "Only strings are supported by the " + this.getClass().getName() + " method");
+        Preconditions.checkArgument(
+                Iterable.class.isAssignableFrom(obj.getClass()),
+                "The source input must be iterable"
+        );
 
-        for (Integer i = 0; i < parameters.getLength(); ++i) {
-            if (!((String) obj).contains(parameters.getString(i))) {
-                return false;
+        if (parameters.isIterable()) {
+            for (Integer i = 0; i < parameters.getLength(); ++i) {
+                if (!(Boolean) apply(obj, parameters.get(i))) {
+                    return false;
+                }
             }
-        }
 
-        return true;
+            return true;
+        } else {
+            return ((JSONArray) obj).contains(parameters.getRootObject());
+        }
     }
 }

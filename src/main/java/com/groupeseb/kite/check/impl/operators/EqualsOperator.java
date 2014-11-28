@@ -14,6 +14,11 @@ public class EqualsOperator implements ICheckOperator {
 
     @Override
     public void apply(Object value, Object expected, String description) {
-        assertEquals(value.toString(), expected, description);
+        if (Number.class.isAssignableFrom(value.getClass()) &&
+                Number.class.isAssignableFrom(value.getClass())) {
+            assertEquals(((Number) value).doubleValue(), ((Number) expected).doubleValue(), description);
+        } else {
+            assertEquals(value, expected, description);
+        }
     }
 }

@@ -4,12 +4,12 @@ import com.groupeseb.kite.check.Check;
 import com.groupeseb.kite.check.DefaultCheckRunner;
 import com.groupeseb.kite.check.ICheckRunner;
 import com.groupeseb.kite.function.Function;
+import com.jayway.jsonpath.JsonPath;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.response.Response;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -17,12 +17,16 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
 import org.json.simple.parser.ParseException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Map;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.testng.AssertJUnit.assertEquals;
@@ -102,9 +106,7 @@ public class DefaultCommandRunner implements ICommandRunner {
         }
     }
 
-    void get(Command command, CreationLog creationLog, ApplicationContext context) throws ParseException, IOException {
-        log.info("GET " + command.getProcessedURI(creationLog) + " (expecting " + command.getExpectedStatus() + ")");
-
+    private String performGetRequest(Command command, CreationLog creationLog, ApplicationContext context, @Nullable HttpParams params) throws IOException {
         CloseableHttpClient httpClient = HttpClients.createDefault();
 
         String requestURI = command.getProcessedURI(creationLog);
@@ -113,7 +115,15 @@ public class DefaultCommandRunner implements ICommandRunner {
         }
 
         HttpGet httpget = new HttpGet(requestURI);
+
+        if (params != null) {
+            httpget.setParams(httpget.getParams());
+        }
+
         httpget.addHeader("Content-Type", "application/json");
+        for (Map.Entry<String, String> header : command.getProcessedHeaders(creationLog).entrySet()) {
+            httpget.addHeader(header.getKey(), header.getValue());
+        }
 
         CloseableHttpResponse response = httpClient.execute(httpget);
         ResponseHandler<String> handler = new BasicResponseHandler();
@@ -122,20 +132,55 @@ public class DefaultCommandRunner implements ICommandRunner {
                 response.getStatusLine().getStatusCode(), (int) command.getExpectedStatus());
 
         try {
-            String responseBody = handler.handleResponse(response);
+            String body = handler.handleResponse(response);
+            return body;
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    void get(Command command, CreationLog creationLog, ApplicationContext context) throws ParseException, IOException {
+        if (command.getPagination() != null) {
+            paginatedGet(command, creationLog, context);
+        } else {
+            String responseBody = performGetRequest(command, creationLog, context, null);
             runChecks(command.getChecks(creationLog), responseBody, context);
-        } catch (HttpResponseException e) {
-            // Nothing to do here
+        }
+    }
+
+    void paginatedGet(Command command, CreationLog creationLog, ApplicationContext context) throws ParseException, IOException {
+        log.info("GET " + command.getProcessedURI(creationLog) + " (expecting " + command.getExpectedStatus() + ")");
+
+        Integer currentPage = command.getPagination().getStartPage();
+        Integer totalPages = currentPage;
+
+        while (currentPage <= totalPages) {
+            BasicHttpParams params = new BasicHttpParams();
+            params.setParameter(command.getPagination().getPageParameterName(), command.getPagination().getStartPage());
+            params.setParameter(command.getPagination().getSizeParameterName(), command.getPagination().getSize());
+
+            String responseBody = performGetRequest(command, creationLog, context, params);
+            totalPages = JsonPath.read(responseBody, command.getPagination().getTotalPagesField());
+
+            runChecks(command.getChecks(creationLog), responseBody, context);
+            currentPage++;
         }
     }
 
     void put(Command command, CreationLog creationLog, ApplicationContext context) throws ParseException {
-        log.info("PUT " + command.getProcessedURI(creationLog) + " (expecting " + command.getExpectedStatus() + ")");
-        Response r = given().contentType(JSON_UTF8).body(command.getProcessedBody(creationLog))
+        log.info("[" + command.getName() + "] PUT " + command.getProcessedURI(creationLog) + " (expecting " + command.getExpectedStatus() + ")");
+
+        if (command.getDebug()) {
+            log.info("[" + command.getName() + "] " + command.getProcessedBody(creationLog));
+        }
+
+        Response postResponse = given()
+                .contentType(JSON_UTF8).headers(command.getProcessedHeaders(creationLog))
+                .body(command.getProcessedBody(creationLog)).log().everything(true)
                 .expect().statusCode(command.getExpectedStatus())
                 .when().put(command.getProcessedURI(creationLog));
 
-        runChecks(command.getChecks(creationLog), r.prettyPrint(), context);
+        runChecks(command.getChecks(creationLog), postResponse.prettyPrint(), context);
     }
 
     void delete(Command command, CreationLog creationLog, ApplicationContext context) throws ParseException {

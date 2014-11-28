@@ -9,6 +9,7 @@ import org.json.simple.parser.ParseException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -18,10 +19,8 @@ import java.util.Map;
 @SuppressWarnings({"UnusedDeclaration"})
 public class Json {
     private JSONParser parser = new JSONParser();
-
     private JSONObject rootObject;
     private JSONArray rootArray;
-
     private String json;
 
     /**
@@ -81,6 +80,18 @@ public class Json {
         } else {
             return new Json((JSONArray) subTree);
         }
+    }
+
+    public Object getObject(String key) {
+        Object subTree = rootObject.get(key);
+
+        if (subTree instanceof JSONObject) {
+            return new Json((JSONObject) subTree);
+        } else  if (subTree instanceof JSONArray) {
+            return new Json((JSONArray) subTree);
+        }
+
+        return subTree;
     }
 
     /**
@@ -199,6 +210,14 @@ public class Json {
         return defaultValue;
     }
 
+    public Boolean isIterable() {
+        return rootArray != null;
+    }
+
+    public <T> Iterator getIterable() {
+        return rootArray.iterator();
+    }
+
     @SuppressWarnings("unchecked")
     public <T> Iterable<T> getIterable(String key) {
         Object o = rootObject.get(key);
@@ -212,5 +231,18 @@ public class Json {
 
     public Map getMap(String key) {
         return rootObject.containsKey(key) ? (Map) rootObject.get(key) : new HashMap();
+    }
+
+
+    public JSONObject getRootObject() {
+        return rootObject;
+    }
+
+    public String getStringOrDefault(String key, String defaultValue) {
+        if (exists(key)) {
+            return getString(key);
+        }
+
+        return defaultValue;
     }
 }

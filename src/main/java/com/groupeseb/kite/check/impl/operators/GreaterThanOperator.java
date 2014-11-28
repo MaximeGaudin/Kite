@@ -1,8 +1,11 @@
 package com.groupeseb.kite.check.impl.operators;
 
 
+import com.google.common.base.Preconditions;
 import com.groupeseb.kite.check.ICheckOperator;
 import org.springframework.stereotype.Component;
+
+import java.util.Collection;
 
 import static org.testng.Assert.assertTrue;
 
@@ -15,6 +18,19 @@ public class GreaterThanOperator implements ICheckOperator {
 
     @Override
     public void apply(Object value, Object expected, String description) {
-        assertTrue(Double.valueOf(value.toString()) >= Double.valueOf(expected.toString()), description);
+        Preconditions.checkArgument(
+                Number.class.isAssignableFrom(value.getClass()),
+                "The input argument of 'gt' must be a number"
+        );
+
+        Preconditions.checkArgument(
+                Number.class.isAssignableFrom(expected.getClass()),
+                "The input argument of 'gt' must be a number"
+        );
+
+        assertTrue(
+                ((Number) value).doubleValue() > ((Number) expected).doubleValue()
+                , description
+        );
     }
 }

@@ -53,8 +53,6 @@ public class Scenario {
         this.description = jsonScenario.getString(DESCRIPTION_KEY);
         this.variables = (Map<String, String>) jsonScenario.getMap(VARIABLE_KEY);
 
-
-
         for (String dependency : jsonScenario.<String>getIterable(DEPENDENCIES_KEY)) {
             dependencies.add(new Scenario(dependency));
         }

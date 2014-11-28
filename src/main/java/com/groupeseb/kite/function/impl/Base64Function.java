@@ -19,6 +19,7 @@ public class Base64Function extends Function {
     @Override
     public String apply(List<String> parameters) {
         Preconditions.checkArgument(parameters.size() == 1, "Exactly one parameter is needed");
+        Preconditions.checkNotNull(parameters.get(0), "Variables are not defined or parameter is null");
 
         return new BASE64Encoder().encode(parameters.get(0).getBytes());
     }

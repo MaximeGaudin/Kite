@@ -4,6 +4,7 @@ import com.groupeseb.kite.CreationLog;
 import com.groupeseb.kite.Json;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.json.simple.parser.ParseException;
 
 @Getter
 @Slf4j
@@ -12,13 +13,13 @@ public class Check {
     private final String fieldName;
     private final String methodName;
     private final String operatorName;
-    private final String expectedValue;
+    private final Object expectedValue;
     private final Json parameters;
     private final Boolean foreach;
     private final Boolean mustMatch;
     private final Boolean skip;
 
-    public Check(Json checkSpecification, CreationLog creationLog) {
+    public Check(Json checkSpecification, CreationLog creationLog) throws ParseException {
         checkSpecification.checkExistence(new String[]{"field", "expected"});
 
         if (!checkSpecification.exists("description")) {
@@ -29,7 +30,7 @@ public class Check {
         fieldName = checkSpecification.getString("field");
         methodName = (checkSpecification.getString("method") == null) ? "nop" : checkSpecification.getString("method");
         operatorName = (checkSpecification.getString("operator") == null) ? "equals" : checkSpecification.getString("operator");
-        expectedValue = creationLog.processPlaceholders(checkSpecification.getString("expected"));
+        expectedValue = creationLog.processPlaceholders(checkSpecification.getObject("expected"));
         parameters = checkSpecification.get("parameters");
         foreach = checkSpecification.getBooleanOrDefault("foreach", fieldName.contains("*"));
         mustMatch = checkSpecification.getBooleanOrDefault("mustMatch", foreach);

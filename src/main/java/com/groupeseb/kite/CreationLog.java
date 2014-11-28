@@ -4,6 +4,8 @@ import com.groupeseb.kite.function.Function;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.time.DateFormatUtils;
+import org.json.simple.parser.ParseException;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -16,6 +18,10 @@ public class CreationLog {
     private final Map<String, String> locations = new HashMap<>();
     private Map<String, String> variables = new HashMap<>();
     private Collection<Function> availableFunctions;
+
+    public CreationLog(Collection<Function> availableFunctions) {
+        this.availableFunctions = availableFunctions;
+    }
 
     public void extend(CreationLog creationLog) {
         this.uuids.putAll(creationLog.uuids);
@@ -67,8 +73,10 @@ public class CreationLog {
     }
 
     String executeFunctions(String name, String body) {
-        if (body.indexOf("{{" + name + "}}") != -1) {
-            body = body.replace("{{" + name + "}}", getFunction(name).apply(new ArrayList<String>()));
+        Pattern withoutParameters = Pattern.compile("\\{\\{" + name + "\\}\\}", Pattern.CASE_INSENSITIVE);
+
+        if (withoutParameters.matcher(body).find()) {
+            body = withoutParameters.matcher(body).replaceAll(getFunction(name).apply(new ArrayList<String>()));
         } else {
             Pattern pattern = Pattern.compile("\\{\\{" + name + "\\:(.+?)\\}\\}", Pattern.CASE_INSENSITIVE);
             Matcher matcher = pattern.matcher(body);
@@ -98,7 +106,7 @@ public class CreationLog {
         return processedBody;
     }
 
-    public String processPlaceholders(String body) {
+    public String processPlaceholdersInString(String body) {
         return processPlaceholders(null, body);
     }
 
@@ -128,4 +136,20 @@ public class CreationLog {
         return processedBody;
     }
 
+    public Object processPlaceholders(Object expected) throws ParseException {
+        if (expected instanceof String) {
+            return processPlaceholdersInString(expected.toString());
+        } else if (expected instanceof Json) {
+            Json expectedObject = (Json) expected;
+            return new Json(processPlaceholdersInString(expectedObject.toString()));
+        } else if (expected instanceof Boolean) {
+            return expected;
+        } else if (expected instanceof Long) {
+                return expected;
+        }  else if (expected instanceof Double) {
+            return expected;
+        } else {
+            throw new NotImplementedException();
+        }
+    }
 }

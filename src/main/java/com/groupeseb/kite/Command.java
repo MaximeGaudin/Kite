@@ -3,6 +3,7 @@ package com.groupeseb.kite;
 import com.groupeseb.kite.check.Check;
 import lombok.Getter;
 import org.apache.http.HttpStatus;
+import org.json.simple.parser.ParseException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,8 +27,9 @@ class Command {
     private final Boolean debug;
     private final Map<String, String> headers;
 
-    private final Json commandSpecification;
+    private Pagination pagination;
 
+    private final Json commandSpecification;
 
     public Command(Json commandSpecification) {
         this.commandSpecification = commandSpecification;
@@ -45,10 +47,14 @@ class Command {
         automaticCheck = commandSpecification.getBooleanOrDefault("automaticCheck", expectedStatus.toString().startsWith("2") ? true : false);
         debug = commandSpecification.getBooleanOrDefault("debug", false);
 
+        if (commandSpecification.exists("pagination")) {
+            pagination = new Pagination(commandSpecification.get("pagination"));
+        }
+
         headers = commandSpecification.getMap("headers");
     }
 
-    public List<Check> getChecks(CreationLog creationLog) {
+    public List<Check> getChecks(CreationLog creationLog) throws ParseException {
         List<Check> checks = new ArrayList<>();
         for (Integer i = 0; i < commandSpecification.getLength("checks"); ++i) {
             checks.add(new Check(commandSpecification.get("checks").get(i), creationLog));
@@ -76,11 +82,11 @@ class Command {
     }
 
     String getProcessedURI(CreationLog creationLog) {
-      return creationLog.processPlaceholders(getName(), getUri());
+        return creationLog.processPlaceholders(getName(), getUri());
     }
 
     String getProcessedBody(CreationLog creationLog) {
-        if(getBody() == null) {
+        if (getBody() == null) {
             return "";
         }
         return creationLog.processPlaceholders(getName(), getBody().toString());

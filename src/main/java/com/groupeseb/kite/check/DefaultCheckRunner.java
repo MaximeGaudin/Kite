@@ -2,7 +2,6 @@ package com.groupeseb.kite.check;
 
 import com.google.common.base.Preconditions;
 import com.jayway.jsonpath.JsonPath;
-import com.jayway.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.parser.ParseException;
 import org.springframework.context.ApplicationContext;
