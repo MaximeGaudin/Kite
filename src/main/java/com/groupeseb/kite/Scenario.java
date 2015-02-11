@@ -21,7 +21,7 @@ public class Scenario {
     protected final Collection<Command> commands = new ArrayList<>();
     protected final List<Scenario> dependencies = new ArrayList<>();
     protected String description;
-    protected Map<String, String> variables;
+    protected Map<String, Object> variables;
 
     /**
      * @param filename The (class)path to the scenario file.
@@ -51,7 +51,7 @@ public class Scenario {
         jsonScenario.checkExistence(new String[]{DESCRIPTION_KEY, COMMANDS_KEY});
 
         this.description = jsonScenario.getString(DESCRIPTION_KEY);
-        this.variables = (Map<String, String>) jsonScenario.getMap(VARIABLE_KEY);
+        this.variables = (Map<String, Object>) jsonScenario.getMap(VARIABLE_KEY);
 
         for (String dependency : jsonScenario.<String>getIterable(DEPENDENCIES_KEY)) {
             dependencies.add(new Scenario(dependency));

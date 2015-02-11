@@ -24,9 +24,17 @@ public class ContainsMethod implements ICheckMethod {
 
         if (parameters.isIterable()) {
             for (Integer i = 0; i < parameters.getLength(); ++i) {
-                if (!(Boolean) apply(obj, parameters.get(i))) {
-                    return false;
-                }
+               try {
+                   if (!(Boolean) apply(obj, parameters.get(i))) {
+                       return false;
+                   }
+               } catch(ClassCastException e) {
+                   // This is a primitive type
+                   Object item = parameters.getObject(i);
+                   if(! ((JSONArray) obj).contains(item)) {
+                       return false;
+                   }
+               }
             }
 
             return true;

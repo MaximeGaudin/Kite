@@ -6,6 +6,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.simple.parser.ParseException;
 import org.springframework.context.ApplicationContext;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 @Slf4j
 public class DefaultCheckRunner implements ICheckRunner {
     private ICheckOperator getMatchingOperator(String operatorName, ApplicationContext factory) {
@@ -76,10 +79,24 @@ public class DefaultCheckRunner implements ICheckRunner {
             }
 
             for (Object o : nodeList) {
-                operator.apply(method.apply(o, check.getParameters()), check.getExpectedValue(), check.getDescription());
+                operator.apply(method.apply(o, check.getParameters()), parseExpectedValue(check.getExpectedValue(), responseBody), check.getDescription());
             }
         } else {
-            operator.apply(method.apply(node, check.getParameters()), check.getExpectedValue(), check.getDescription());
+            operator.apply(method.apply(node, check.getParameters()), parseExpectedValue(check.getExpectedValue(), responseBody), check.getDescription());
         }
+    }
+
+    private Object parseExpectedValue(Object expectedValue, String responseBody) {
+        if (String.class.isAssignableFrom(expectedValue.getClass())) {
+            Pattern lookupPattern = Pattern.compile("\\{\\{Lookup\\:%\\.(.+)\\}\\}");
+            Matcher matcher = lookupPattern.matcher(expectedValue.toString());
+
+            if (matcher.find()) {
+                String path = matcher.group(1);
+                return JsonPath.read(responseBody, path);
+            }
+        }
+
+        return expectedValue;
     }
 }

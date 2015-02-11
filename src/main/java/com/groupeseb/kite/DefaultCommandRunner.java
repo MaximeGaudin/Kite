@@ -30,6 +30,7 @@ import java.util.Map;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.fail;
 
 @Slf4j
 @NoArgsConstructor
@@ -199,7 +200,11 @@ public class DefaultCommandRunner implements ICommandRunner {
 
     void runChecks(Collection<Check> checks, String responseBody, ApplicationContext context) throws ParseException {
         for (Check check : checks) {
-            checkRunner.verify(check, responseBody, context);
+            try {
+                checkRunner.verify(check, responseBody, context);
+            } catch(RuntimeException e) {
+                fail("Check [" + check.getDescription() + "] failed : " + e.getMessage());
+            }
         }
     }
 }

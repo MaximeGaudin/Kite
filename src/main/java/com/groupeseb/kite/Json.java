@@ -87,7 +87,7 @@ public class Json {
 
         if (subTree instanceof JSONObject) {
             return new Json((JSONObject) subTree);
-        } else  if (subTree instanceof JSONArray) {
+        } else if (subTree instanceof JSONArray) {
             return new Json((JSONArray) subTree);
         }
 
@@ -244,5 +244,9 @@ public class Json {
         }
 
         return defaultValue;
+    }
+
+    public Object getObject(Integer i) {
+        return rootArray.get(i);
     }
 }

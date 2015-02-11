@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import java.util.Collection;
 import java.util.Map;
 
 
@@ -27,8 +26,8 @@ public class DefaultScenarioRunner implements IScenarioRunner {
 
         log.info("Testing : " + scenario.getDescription() + "...");
 
-        for (Map.Entry<String, String> entry : scenario.getVariables().entrySet()) {
-            creationLog.addVariable(entry.getKey(), creationLog.applyFunctions(entry.getValue()));
+        for (Map.Entry<String, Object> entry : scenario.getVariables().entrySet()) {
+            creationLog.addVariable(entry.getKey(), creationLog.applyFunctions(entry.getValue().toString()));
         }
 
         for (Command command : scenario.getCommands()) {

@@ -16,13 +16,17 @@ public class LengthMethod implements ICheckMethod {
 
     @Override
     public Object apply(Object o, Json parameters) {
-        Preconditions.checkNotNull(o, "Parameter of the 'length' method cannot be null!");
+        Preconditions.checkNotNull(o, "The input collection of the 'length' method cannot be null! Does the field exists ?");
 
         Preconditions.checkArgument(
-                Collection.class.isAssignableFrom(o.getClass()),
-                "The input argument of 'length' must be a collection"
+                Collection.class.isAssignableFrom(o.getClass()) || String.class.isAssignableFrom(o.getClass()),
+                "The input argument of 'length' must be a collection or a string"
         );
 
-        return ((Collection)o).size();
+        if (Collection.class.isAssignableFrom(o.getClass())) {
+            return ((Collection) o).size();
+        } else {
+            return ((String) o).length();
+        }
     }
 }

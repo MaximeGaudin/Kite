@@ -120,7 +120,7 @@ public class CreationLog {
         this.uuids.putAll(getEveryUUIDs(processedBody));
 
         for (Map.Entry<String, String> entry : getVariables().entrySet()) {
-            processedBody = processedBody.replace("{{Variable:" + entry.getKey() + "}}", entry.getValue());
+            processedBody = processedBody.replace("{{Variable:" + entry.getKey() + "}}", entry.getValue().toString());
         }
 
         for (Map.Entry<String, String> entry : this.getUuids().entrySet()) {
