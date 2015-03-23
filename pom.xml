@@ -10,29 +10,18 @@
 
     <distributionManagement>
         <repository>
-            <id>seb-nexus-releases</id>
-            <name>SEB Nexus: Release</name>
-            <url>https://nexus.qa.openfoodsystem.com/content/repositories/releases/</url>
+            <id>nexus-lt</id>
+            <name>LT Nexus: Release</name>
+            <url>http://nexus.lateral-thoughts.com/content/repositories/releases/</url>
         </repository>
         <snapshotRepository>
-            <id>seb-nexus-snapshots</id>
-            <name>SEB Nexus: Snapshots</name>
-            <url>https://nexus.qa.openfoodsystem.com/content/repositories/snapshots/</url>
+            <id>nexus-lt</id>
+            <name>LT Nexus: Snapshots</name>
+            <url>http://nexus.lateral-thoughts.com/content/repositories/snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 
-    <repositories>
-        <repository>
-            <id>seb-nexus-public</id>
-            <url>https://nexus.qa.openfoodsystem.com/content/groups/public/</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-
     <dependencies>
-
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
