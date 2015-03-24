@@ -16,7 +16,9 @@ import java.util.regex.Pattern;
 public class CreationLog {
     private final Map<String, String> uuids = new HashMap<>();
     private final Map<String, String> locations = new HashMap<>();
-    private Map<String, String> variables = new HashMap<>();
+    private final Map<String, String> variables = new HashMap<>();
+    private final Map<String, String> bodies = new HashMap<>();
+
     private Collection<Function> availableFunctions;
 
     public CreationLog(Collection<Function> availableFunctions) {
@@ -43,6 +45,10 @@ public class CreationLog {
 
     public String getVariableValue(String variableName) {
         return this.variables.get(variableName.trim());
+    }
+
+    public String getBody(String objectName) {
+        return this.bodies.get(objectName);
     }
 
     private Map<String, String> getEveryUUIDs(String scenario) {
@@ -76,7 +82,7 @@ public class CreationLog {
         Pattern withoutParameters = Pattern.compile("\\{\\{" + name + "\\}\\}", Pattern.CASE_INSENSITIVE);
 
         if (withoutParameters.matcher(body).find()) {
-            body = withoutParameters.matcher(body).replaceAll(getFunction(name).apply(new ArrayList<String>()));
+            body = withoutParameters.matcher(body).replaceAll(getFunction(name).apply(new ArrayList<String>(), this));
         } else {
             Pattern pattern = Pattern.compile("\\{\\{" + name + "\\:(.+?)\\}\\}", Pattern.CASE_INSENSITIVE);
             Matcher matcher = pattern.matcher(body);
@@ -85,10 +91,10 @@ public class CreationLog {
                 List<String> parameters = new ArrayList<>();
 
                 for (int i = 1; i <= matcher.groupCount(); ++i) {
-                    parameters.add(this.getVariableValue(matcher.group(i)));
+                    parameters.add(matcher.group(i));
                 }
 
-                body = body.replace(matcher.group(0), getFunction(name).apply(parameters));
+                body = body.replace(matcher.group(0), getFunction(name).apply(parameters, this));
             }
         }
         return body;
@@ -145,11 +151,15 @@ public class CreationLog {
         } else if (expected instanceof Boolean) {
             return expected;
         } else if (expected instanceof Long) {
-                return expected;
-        }  else if (expected instanceof Double) {
+            return expected;
+        } else if (expected instanceof Double) {
             return expected;
         } else {
             throw new NotImplementedException();
         }
+    }
+
+    public void addBody(String name, String response) {
+        this.bodies.put(name, response);
     }
 }

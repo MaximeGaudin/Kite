@@ -88,11 +88,19 @@ public class DefaultCommandRunner implements ICommandRunner {
 
         Response postResponse = given()
                 .contentType(JSON_UTF8).headers(command.getProcessedHeaders(creationLog))
-                .body(command.getProcessedBody(creationLog)).log().everything(true)
-                .expect().statusCode(command.getExpectedStatus())
+                .body(command.getProcessedBody(creationLog))
                 .when().post(command.getProcessedURI(creationLog));
 
-        runChecks(command.getChecks(creationLog), postResponse.prettyPrint(), context);
+        String response = postResponse.prettyPrint();
+        log.info(response);
+
+        creationLog.addBody("%", response);
+        if (command.getName() != null) {
+            creationLog.addBody(command.getName(), response);
+        }
+
+        assertEquals("Unexpected response status", command.getExpectedStatus(), new Integer(postResponse.getStatusCode()));
+        runChecks(command.getChecks(creationLog), response, context);
 
         if (command.getAutomaticCheck()) {
             String location = postResponse.getHeader("Location");
@@ -130,10 +138,15 @@ public class DefaultCommandRunner implements ICommandRunner {
         ResponseHandler<String> handler = new BasicResponseHandler();
 
         assertEquals(command.getExpectedStatus() + " expected but " + response.getStatusLine().getStatusCode() + " received.",
-                response.getStatusLine().getStatusCode(), (int) command.getExpectedStatus());
+                (int) command.getExpectedStatus(), response.getStatusLine().getStatusCode());
 
         try {
             String body = handler.handleResponse(response);
+            creationLog.addBody("%", body);
+            if (command.getName() != null) {
+                creationLog.addBody(command.getName(), body);
+            }
+
             return body;
         } catch (Exception e) {
             return "";
@@ -181,7 +194,15 @@ public class DefaultCommandRunner implements ICommandRunner {
                 .expect().statusCode(command.getExpectedStatus())
                 .when().put(command.getProcessedURI(creationLog));
 
-        runChecks(command.getChecks(creationLog), postResponse.prettyPrint(), context);
+        String response = postResponse.prettyPrint();
+        log.info(response);
+
+        creationLog.addBody("%", response);
+        if (command.getName() != null) {
+            creationLog.addBody(command.getName(), response);
+        }
+
+        runChecks(command.getChecks(creationLog), response, context);
     }
 
     void delete(Command command, CreationLog creationLog, ApplicationContext context) throws ParseException {
@@ -202,7 +223,7 @@ public class DefaultCommandRunner implements ICommandRunner {
         for (Check check : checks) {
             try {
                 checkRunner.verify(check, responseBody, context);
-            } catch(RuntimeException e) {
+            } catch (RuntimeException e) {
                 fail("Check [" + check.getDescription() + "] failed : " + e.getMessage());
             }
         }

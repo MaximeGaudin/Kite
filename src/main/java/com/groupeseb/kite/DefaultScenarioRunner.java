@@ -20,10 +20,13 @@ public class DefaultScenarioRunner implements IScenarioRunner {
     }
 
     private CreationLog execute(Scenario scenario, CreationLog creationLog) throws Exception {
+        log.info("Parsing {}...", scenario.getFilename());
+
         for (Scenario dependency : scenario.getDependencies()) {
             creationLog.extend(execute(dependency, creationLog));
         }
 
+        log.info("Executing {}...", scenario.getFilename());
         log.info("Testing : " + scenario.getDescription() + "...");
 
         for (Map.Entry<String, Object> entry : scenario.getVariables().entrySet()) {

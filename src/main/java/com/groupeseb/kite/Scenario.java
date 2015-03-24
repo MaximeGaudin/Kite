@@ -23,12 +23,15 @@ public class Scenario {
     protected String description;
     protected Map<String, Object> variables;
 
+    protected final String filename;
+
     /**
      * @param filename The (class)path to the scenario file.
      * @throws IOException
      * @throws ParseException
      */
     public Scenario(String filename) throws IOException, ParseException {
+        this.filename = filename;
         parseScenario(readFixture(filename));
     }
 
@@ -61,5 +64,10 @@ public class Scenario {
         for (Integer i = 0; i < commandCount; ++i) {
             commands.add(new Command(jsonScenario.get(COMMANDS_KEY).get(i)));
         }
+    }
+
+    @Override
+    public String toString() {
+        return this.getFilename() + ":" + this.getDescription();
     }
 }
