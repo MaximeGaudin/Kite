@@ -137,7 +137,7 @@ public class DefaultCommandRunner implements ICommandRunner {
         CloseableHttpResponse response = httpClient.execute(httpget);
         ResponseHandler<String> handler = new BasicResponseHandler();
 
-        assertEquals(command.getExpectedStatus() + " expected but " + response.getStatusLine().getStatusCode() + " received.",
+        assertEquals(command.getDescription() + " | " + command.getExpectedStatus() + " expected but " + response.getStatusLine().getStatusCode() + " received.",
                 (int) command.getExpectedStatus(), response.getStatusLine().getStatusCode());
 
         try {

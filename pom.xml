@@ -4,22 +4,32 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.mgaudin</groupId>
+    <groupId>com.groupeseb</groupId>
     <artifactId>kite</artifactId>
     <version>2.0-SNAPSHOT</version>
 
     <distributionManagement>
         <repository>
-            <id>nexus-lt</id>
-            <name>LT Nexus: Release</name>
-            <url>http://nexus.lateral-thoughts.com/content/repositories/releases/</url>
+            <id>seb-nexus-releases</id>
+            <name>SEB Nexus: Release</name>
+            <url>https://nexus.qa.openfoodsystem.com/content/repositories/releases/</url>
         </repository>
         <snapshotRepository>
-            <id>nexus-lt</id>
-            <name>LT Nexus: Snapshots</name>
-            <url>http://nexus.lateral-thoughts.com/content/repositories/snapshots/</url>
+            <id>seb-nexus-snapshots</id>
+            <name>SEB Nexus: Snapshots</name>
+            <url>https://nexus.qa.openfoodsystem.com/content/repositories/snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>seb-nexus-public</id>
+            <url>https://nexus.qa.openfoodsystem.com/content/groups/public/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
    <dependencies>
         <dependency>
@@ -137,7 +147,7 @@
 
                 <executions>
                     <execution>
-                        <code>attach-sources</code>
+                        <id>attach-sources</id>
                         <goals>
                             <goal>jar</goal>
                         </goals>
@@ -153,7 +163,7 @@
 
                 <executions>
                     <execution>
-                        <code>attach-javadocs</code>
+                        <id>attach-javadocs</id>
                         <goals>
                             <goal>jar</goal>
                         </goals>
